@@ -1,10 +1,9 @@
-name: Build and deploy MkDocs site
+name: Build and publish MkDocs site
 
 on:
   push:
-    branches: [ main ]    # change if you use another default branch
+    branches: [ main ]     # change if your default branch is different
 
-# Required permissions so the workflow can publish Pages
 permissions:
   contents: read
   pages: write
@@ -14,13 +13,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -28,9 +35,9 @@ jobs:
           pip install mkdocs mkdocs-material mkdocs-awesome-pages-plugin
 
       - name: Build site
-        run: mkdocs build        # outputs into ./site
+        run: mkdocs build --clean    # output goes to ./site
 
-      - name: Upload artifact for Pages
+      - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v1
         with:
           path: ./site
